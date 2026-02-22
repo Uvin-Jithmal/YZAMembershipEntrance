@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YZA Zoo Entrance Validation</title>
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Segoe UI', sans-serif;
+  overflow: hidden;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+}
+
+/* Slideshow background container */
+.background {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+  overflow: hidden;
+}
+
+.background img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  transition: opacity 1.5s ease-in-out;
+}
+
+/* Lighter overlay front box */
+.overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.10); /* lighter overlay */
+  z-index: -1;
+}
+
+.container {
+  position: absolute;
+  bottom: 200px; /* distance from bottom */
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(10px);
+  padding: 30px 10px;
+  border-radius: 25px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+}
+
+.logo {
+  width: 100px;
+  margin-bottom: 10px;
+}
+
+h1 {
+  font-size: 22px;
+  margin: 5px 0;
+}
+
+h2 {
+  font-size: 14px;
+  font-weight: normal;
+  margin-bottom: 20px;
+  opacity: 0.85;
+}
+
+input {
+  width: 80%;
+  padding: 14px;
+  font-size: 16px;
+  border-radius: 30px;
+  border: none;
+  outline: none;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+button {
+  width: 50%;
+  padding: 14px;
+  font-size: 16px;
+  border-radius: 30px;
+  border: none;
+  background-color: #00c853;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  background-color: #009624;
+}
+
+/* Updated result box for square message */
+.result {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 12px;
+  font-size: 28px;
+  font-weight: bold;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 70px;
+  color: black; /* black text */
+}
+
+.authorized {
+  background-color: #4FF86D; /* green square */
+}
+
+.unauthorized {
+  background-color: #ff1744; /* red square */
+}
+</style>
+</head>
+<body>
+
+<!-- Background images -->
+<div class="background">
+  <img src="https://raw.githubusercontent.com/Uvin-Jithmal/YZAMembershipEntrance/main/images/img1.jpg" alt="">
+  <img src="https://raw.githubusercontent.com/Uvin-Jithmal/YZAMembershipEntrance/main/images/img2.jpg" alt="">
+  <img src="https://raw.githubusercontent.com/Uvin-Jithmal/YZAMembershipEntrance/main/images/img3.jpg" alt="">
+  <img src="https://raw.githubusercontent.com/Uvin-Jithmal/YZAMembershipEntrance/main/images/img4.jpeg" alt="">
+  <img src="https://raw.githubusercontent.com/Uvin-Jithmal/YZAMembershipEntrance/main/images/img5.jpg" alt="">
+  <img src="https://raw.githubusercontent.com/Uvin-Jithmal/YZAMembershipEntrance/main/images/img6.jpg" alt="">
+  <img src="https://raw.githubusercontent.com/Uvin-Jithmal/YZAMembershipEntrance/main/images/img7.jpg" alt="">
+  <img src="https://raw.githubusercontent.com/Uvin-Jithmal/YZAMembershipEntrance/main/images/img8.jpg" alt="">
+</div>
+
+<div class="overlay"></div>
+
+<div class="container">
+  <img src="https://raw.githubusercontent.com/Uvin-Jithmal/YZAMembershipEntrance/main/images/logo.png" class="logo" alt="YZA Logo">
+  <h1>Young Zoologist Association</h1>
+  <h2>Zoo Entrance Validation</h2>
+
+  <input type="text" id="membershipNo" placeholder="Enter Membership No Ex: 178-G">
+  <button onclick="validate()">Validate Member</button>
+
+  <div id="message"></div>
+</div>
+
+<script>
+// Background slideshow
+let slides = document.querySelectorAll('.background img');
+let current = 0;
+slides[current].style.opacity = 1;
+
+setInterval(() => {
+  slides[current].style.opacity = 0;
+  current = (current + 1) % slides.length;
+  slides[current].style.opacity = 1;
+}, 4000); // change every 4s
+
+// Google Sheets membership validation
+const sheetURL = "https://docs.google.com/spreadsheets/d/1bwTMYWHN3aaFGfx1uCZcvxYSBJ2UN8ibQy_aY-4IIRo/gviz/tq?tqx=out:json";
+
+// ✅ Updated validate function with full name
+async function validate() {
+  const membershipNo = document.getElementById("membershipNo").value.trim();
+  if (!membershipNo) { alert("Please enter Membership No"); return; }
+
+  const response = await fetch(sheetURL);
+  const text = await response.text();
+  const json = JSON.parse(text.substr(47).slice(0, -2));
+  const rows = json.table.rows;
+
+  let found = false;
+  let fullName = "";
+
+  rows.forEach(row => {
+    if (row.c[1] && row.c[1].v === membershipNo) {
+      found = true;
+      if (row.c[0] && row.c[0].v) {
+        fullName = row.c[0].v; // Full Name is in first column
+      }
+    }
+  });
+
+  const msg = document.getElementById("message");
+  msg.innerHTML = "";
+  const div = document.createElement("div");
+  div.classList.add("result");
+
+  if (found) {
+    div.classList.add("authorized");
+    div.innerHTML = `
+      <span style="font-size:36px; margin-bottom:5px;">✔</span>
+      Authorized Member
+      <div style="font-size:18px; margin-top:5px;">${fullName}</div>
+    `;
+  } else {
+    div.classList.add("unauthorized");
+    div.innerHTML = `<span style="font-size:36px; margin-bottom:5px;">✖</span>Not Authorized`;
+  }
+
+  msg.appendChild(div);
+}
+</script>
+
+</body>
+</html>
